@@ -105,6 +105,10 @@ public class CreatingInventory implements InventoryHolder {
     private void setFlashingItem(final Player player) {
         // Clear flashing item since plugin no longer
         int slot = config.getInt("Inventory.Flashing.Slot", 40);
+        if (slot == -1) {
+            return;
+        }
+
         inventory.setItem(slot, null);
 
         // Returns if player doesn't have any team or isn't glowing.
@@ -123,6 +127,11 @@ public class CreatingInventory implements InventoryHolder {
     }
 
     private void setRainbowItem() {
+        int slot = config.getInt("Inventory.Rainbow.Slot", 39);
+        if (slot == -1) {
+            return;
+        }
+
         // Rainbow head
         ItemStack rainbowHead = HeadUtils.getCustomSkull(config.getString("Inventory.Rainbow.Texture", DEFAULT_RAINBOW_TEXTURE));
         ItemMeta rainbowHeadMeta = rainbowHead.getItemMeta();
@@ -132,7 +141,7 @@ public class CreatingInventory implements InventoryHolder {
         rainbowHeadMeta.setLore(messageHandler.getMessages(Messages.RAINBOW_HEAD_LORE));
         rainbowHead.setItemMeta(rainbowHeadMeta);
 
-        inventory.setItem(config.getInt("Inventory.Rainbow.Slot", 39), rainbowHead);
+        inventory.setItem(slot, rainbowHead);
     }
 
     private void setPlayerStatusItem(Player player) {
