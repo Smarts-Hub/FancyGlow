@@ -11,7 +11,11 @@ public class MessageUtils {
 
     private static BukkitAudiences adventure;
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
-    private static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.legacySection();
+    private static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()
+        .character('§')
+        .hexColors()
+        .useUnusualXRepeatedCharacterHexFormat()
+        .build();
 
     /**
      * Parses a message with the mini message format
