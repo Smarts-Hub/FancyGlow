@@ -35,46 +35,48 @@ public class HeadClickListener implements Listener {
 
         Player player = (Player) event.getWhoClicked();
         player.closeInventory();
-        switch (event.getSlot()) {
-            // Multicolor head
-            case 39 -> {
-                if (!player.hasPermission("fancyglow.rainbow")) {
-                    messageHandler.sendMessage(player, Messages.NO_PERMISSION);
-                    return;
-                }
 
-                // Disables combined modes if set on config.
-                if (!plugin.getConfiguration().getBoolean("Flash_Rainbow") && glowManager.isFlashingTaskActive(player)) {
-                    messageHandler.sendMessage(player, Messages.FLASHING_WITH_RAINBOW);
-                    return;
-                }
-
-                // Toggle rainbow mode
-                boolean toggled = glowManager.toggleMulticolorGlow(player);
-                messageHandler.sendMessage(player, toggled ? Messages.ENABLE_RAINBOW : Messages.DISABLE_RAINBOW);
+        int rainbowSlot = plugin.getConfiguration().getInt("Inventory.Rainbow.Slot", 39);
+        int flashingSlot = plugin.getConfiguration().getInt("Inventory.Flashing.Slot", 40);
+        int statusSlot = plugin.getConfiguration().getInt("Inventory.Status.Slot", 41);
+        // Rainbow Slot
+        if (rainbowSlot != -1 && event.getSlot() == rainbowSlot) {
+            if (!player.hasPermission("fancyglow.rainbow")) {
+                messageHandler.sendMessage(player, Messages.NO_PERMISSION);
+                return;
             }
-            // Flashing head
-            case 40 -> {
-                if (!player.hasPermission("fancyglow.flashing")) {
-                    messageHandler.sendMessage(player, Messages.NO_PERMISSION);
-                    return;
-                }
 
-                // Disables combined modes if set on config.
-                if (!plugin.getConfiguration().getBoolean("Flash_Rainbow") && glowManager.isMulticolorTaskActive(player)) {
-                    messageHandler.sendMessage(player, Messages.FLASHING_WITH_RAINBOW);
-                    return;
-                }
+            // Disables combined modes if set on config.
+            if (!plugin.getConfiguration().getBoolean("Flash_Rainbow") && glowManager.isFlashingTaskActive(player)) {
+                messageHandler.sendMessage(player, Messages.FLASHING_WITH_RAINBOW);
+                return;
+            }
 
-                // Toggle flashing mode
-                boolean toggled = glowManager.toggleFlashingGlow(player);
-                messageHandler.sendMessage(player, toggled ? Messages.ENABLE_FLASHING : Messages.DISABLE_GLOW);
+            // Toggle rainbow mode
+            boolean toggled = glowManager.toggleMulticolorGlow(player);
+            messageHandler.sendMessage(player, toggled ? Messages.ENABLE_RAINBOW : Messages.DISABLE_RAINBOW);
+        }
+        // Flashing Slot
+        else if (flashingSlot != -1 && event.getSlot() == flashingSlot) {
+            if (!player.hasPermission("fancyglow.flashing")) {
+                messageHandler.sendMessage(player, Messages.NO_PERMISSION);
+                return;
             }
-            // Disable color head
-            case 41 -> {
-                glowManager.removeGlow(player);
-                messageHandler.sendMessage(player, Messages.DISABLE_GLOW);
+
+            // Disables combined modes if set on config.
+            if (!plugin.getConfiguration().getBoolean("Flash_Rainbow") && glowManager.isMulticolorTaskActive(player)) {
+                messageHandler.sendMessage(player, Messages.FLASHING_WITH_RAINBOW);
+                return;
             }
+
+            // Toggle flashing mode
+            boolean toggled = glowManager.toggleFlashingGlow(player);
+            messageHandler.sendMessage(player, toggled ? Messages.ENABLE_FLASHING : Messages.DISABLE_GLOW);
+        }
+        // Status Slot
+        else if (event.getSlot() == statusSlot) {
+            glowManager.removeGlow(player);
+            messageHandler.sendMessage(player, Messages.DISABLE_GLOW);
         }
     }
 }
