@@ -19,7 +19,7 @@ public class PlayerJoinListener implements Listener {
     public void onPlayerJoin(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         if (!player.hasPermission("fancyglow.all_colors")) {
-            glowManager.removePlayerFromAllTeams(player);
+            glowManager.removeGlow(player);
         }
     }
 }
