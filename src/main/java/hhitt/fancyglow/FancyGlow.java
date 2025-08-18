@@ -10,10 +10,7 @@ import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import hhitt.fancyglow.api.FancyGlowAPI;
 import hhitt.fancyglow.api.FancyGlowAPIImpl;
 import hhitt.fancyglow.inventory.CreatingInventory;
-import hhitt.fancyglow.listeners.HeadClickListener;
-import hhitt.fancyglow.listeners.MenuClickListener;
-import hhitt.fancyglow.listeners.PlayerChangeWorldListener;
-import hhitt.fancyglow.listeners.PlayerQuitListener;
+import hhitt.fancyglow.listeners.*;
 import hhitt.fancyglow.managers.CommandLoader;
 import hhitt.fancyglow.managers.GlowManager;
 import hhitt.fancyglow.managers.PlayerGlowManager;
@@ -137,6 +134,7 @@ public final class FancyGlow extends ZapperJavaPlugin {
 
         pluginManager.registerEvents(new MenuClickListener(this), this);
         pluginManager.registerEvents(new HeadClickListener(this), this);
+        pluginManager.registerEvents(new PlayerJoinListener(this), this);
         pluginManager.registerEvents(new PlayerQuitListener(this), this);
         pluginManager.registerEvents(new PlayerChangeWorldListener(this), this);
     }
