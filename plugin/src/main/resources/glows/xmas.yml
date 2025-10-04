@@ -1,0 +1,6 @@
+display-name: "<red>X-mas <green>Glow"
+permission: fancyglow.xmas
+tick-update-interval: 10
+color:
+  - "RED"
+  - "GREEN"

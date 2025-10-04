@@ -1,0 +1,4 @@
+team-handling: true
+persistent-glow: true
+disabled-worlds:
+  - disabled_world

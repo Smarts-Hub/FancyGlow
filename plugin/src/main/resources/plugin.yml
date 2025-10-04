@@ -1,0 +1,7 @@
+name: FancyGlow
+main: dev.smartshub.fancyglow.FancyGlow
+version: $version
+api-version: 1.21
+authors: [ hhitt, Sliide_, SmartsHub ]
+description: "The ultimate cosmetic plugin solution!"
+soft-depend: [ PlaceholderAPI ]
