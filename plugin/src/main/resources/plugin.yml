@@ -1,5 +1,5 @@
 name: FancyGlow
-main: dev.smartshub.fancyglow.FancyGlow
+main: dev.smartshub.fancyglow.plugin.FancyGlow
 version: $version
 api-version: 1.21
 authors: [ hhitt, Sliide_, SmartsHub ]

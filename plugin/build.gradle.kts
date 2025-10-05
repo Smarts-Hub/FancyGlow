@@ -25,11 +25,17 @@ tasks {
         archiveFileName.set("FancyGlow-${project.version}.jar")
         archiveClassifier.set("")
 
-        from(project(":plugin").sourceSets.main.get().output)
-        from(project(":api").sourceSets.main.get().output)
+        dependsOn(
+            ":api:jar",
+            ":nms-v1_21_R5:jar"
+        )
 
-        relocate("org.h2", "dev.smartshub.shkoth.libs.h2")
-        relocate("revxrsal.commands", "dev.smartshub.shkoth.libs.lamp")
+        from(zipTree(project(":api").tasks.named<Jar>("jar").get().archiveFile))
+        from(zipTree(project(":nms-v1_21_R5").tasks.named<Jar>("jar").get().archiveFile))
+
+        relocate("org.h2", "dev.smartshub.fancyglow.libs.h2")
+        relocate("revxrsal.commands", "dev.smartshub.fancyglow.libs.lamp")
+        relocate("dev.dejvokep.boostedyaml", "dev.smartshub.fancyglow.libs.boostedyaml")
 
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
@@ -42,6 +48,7 @@ tasks {
         exclude("**/*.DSA")
         exclude("**/*.RSA")
     }
+
     processResources {
         filesMatching("plugin.yml") {
             expand("version" to project.version)

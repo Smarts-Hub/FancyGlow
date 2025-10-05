@@ -22,3 +22,7 @@ exception.no-permission: "<red>You don't have permission to do that."
 # Admin reload messages
 reload-done: "<green>FancyGlow reloaded successfully."
 reload-failed: "<red>FancyGlow reload failed. See console for details."
+
+
+# DO NOT TOUCH THIS!
+config-version: 1
