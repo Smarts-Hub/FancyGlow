@@ -63,7 +63,7 @@ public class ConfigLoader {
         try {
             Configuration config = configCache.get(fullPath);
             if (config != null) {
-                config.reloadFile();
+                config.reload();
                 updateLastModified(fullPath);
             } else {
                 load(fileName, type);

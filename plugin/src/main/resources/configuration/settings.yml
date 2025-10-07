@@ -1,7 +1,11 @@
 team-handling: true
 persistent-glow: true
-disabled-worlds:
-  - disabled_world
+
+glow-worlds:
+  mode: blacklist
+  list:
+    - world_nether
+    - disabled_world
 
 # DO NOT TOUCH THIS!
 config-version: 1

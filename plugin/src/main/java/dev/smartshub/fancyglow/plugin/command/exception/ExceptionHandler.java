@@ -16,7 +16,7 @@ public class ExceptionHandler extends BukkitExceptionHandler {
 
     @HandleException
     public void onNoPermission(final @NotNull NoPermissionException e, final @NotNull BukkitCommandActor actor) {
-        notifyService.sendChat(actor.sender(), "exception.no-permission");
+        notifyService.sendChat(actor.sender(), "no-permission");
     }
 
 }

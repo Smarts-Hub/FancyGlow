@@ -1,11 +1,9 @@
 package dev.smartshub.fancyglow.plugin.command;
 
 import dev.smartshub.fancyglow.api.glow.GlowMode;
-import dev.smartshub.fancyglow.plugin.FancyGlow;
-import dev.smartshub.fancyglow.plugin.service.config.ConfigService;
+import dev.smartshub.fancyglow.plugin.service.flow.LifecycleService;
 import dev.smartshub.fancyglow.plugin.service.glow.GlowHandlingService;
 import dev.smartshub.fancyglow.plugin.service.notify.NotifyService;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Subcommand;
@@ -16,69 +14,55 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 public class GlowCommand {
 
     private final GlowHandlingService glowHandlingService;
+    private final LifecycleService lifecycleService;
     private final NotifyService notifyService;
-    private final ConfigService configService;
-    private final FancyGlow plugin;
 
-    public GlowCommand(GlowHandlingService glowHandlingService, NotifyService notifyService,
-                       ConfigService configService, FancyGlow plugin) {
+    public GlowCommand(GlowHandlingService glowHandlingService, LifecycleService lifecycleService,
+                       NotifyService notifyService) {
         this.glowHandlingService = glowHandlingService;
+        this.lifecycleService = lifecycleService;
         this.notifyService = notifyService;
-        this.configService = configService;
-        this.plugin = plugin;
     }
 
     @Subcommand("color")
     public void color(BukkitCommandActor actor, GlowMode glowMode) {
-        if(!actor.isPlayer()) return;
-        glowHandlingService.toggleGlow(actor.asPlayer(), glowMode);
+        glowHandlingService.color(actor, glowMode);
+    }
+
+    @Subcommand("toggle")
+    public void toggle(BukkitCommandActor actor) {
+        glowHandlingService.toggle(actor);
     }
 
     @Subcommand("off")
     public void off(BukkitCommandActor actor) {
-        if(!actor.isPlayer()) return;
-        glowHandlingService.disableGlow(actor.asPlayer());
+        glowHandlingService.off(actor);
     }
 
     @Subcommand("set")
     @CommandPermission("fancyglow.admin")
     public void set(BukkitCommandActor actor, Player player, GlowMode glowMode) {
-        if(player == null) {
-            notifyService.sendChat(actor.asPlayer(), "player-not-found");
-            return;
-        }
-
-        glowHandlingService.applyGlowMode(player, glowMode.getId());
-        notifyService.sendChat(actor.asPlayer(), "set-glow-others");
+        glowHandlingService.set(actor, player, glowMode);
     }
 
     @Subcommand("off-to")
     @CommandPermission("fancyglow.admin")
     public void offOthers(BukkitCommandActor actor, Player player) {
-        if(player == null) {
-            notifyService.sendChat(actor.asPlayer(), "player-not-found");
-            return;
-        }
-
-        glowHandlingService.disableGlow(player);
-        notifyService.sendChat(actor.asPlayer(), "off-glow-others");
+        glowHandlingService.offOthers(player);
+        notifyService.sendChat(actor.sender(), "glow-disabled-others");
     }
 
     @Subcommand("off-all")
     @CommandPermission("fancyglow.admin")
     public void offAll(BukkitCommandActor actor) {
-        for(var player : Bukkit.getOnlinePlayers()) {
-            glowHandlingService.disableGlow(player);
-        }
-        notifyService.sendChat(actor.asPlayer(), "off-glow-all");
+        glowHandlingService.offAll();
+        notifyService.sendChat(actor.sender(), "glow-disabled-all");
     }
 
     @Subcommand("reload")
     @CommandPermission("fancyglow.admin")
     public void reload(BukkitCommandActor actor) {
-        configService.reloadAll();
-        plugin.restartAsyncTask();
-        notifyService.sendChat(actor.asPlayer(), "config-reloaded");
+        lifecycleService.reload();
     }
 
 }

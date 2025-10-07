@@ -112,7 +112,7 @@ public class FancyGlow extends JavaPlugin {
                 .exceptionHandler(exceptionHandler)
                 .build();
 
-        lamp.register(new GlowCommand(glowHandlingService, notifyService, configService, this));
+        lamp.register(new GlowCommand(glowHandlingService, configService, this));
     }
 
     private void hook() {
@@ -127,11 +127,4 @@ public class FancyGlow extends JavaPlugin {
         new PlaceholderAPIHook(glowStateRegistry);
     }
 
-
-    public void restartAsyncTask() {
-        if (asyncJobTask != null) {
-            try { asyncJobTask.cancel(); } catch (Exception ignored) {}
-        }
-        this.asyncJobTask = new AsyncJobTask(this, nmsHandler, glowStateRegistry, glowModeRegistry);
-    }
 }

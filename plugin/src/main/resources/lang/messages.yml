@@ -1,27 +1,19 @@
-# FancyGlow messages (MiniMessage format). Adjust colors/styles as desired.
-# Placeholders: MessageParser supports PlaceholderAPI if installed.
+no-permission: "<red>You do not have permission to perform this!"
+glow-enabled: "<green>Glow successfully enabled!"
+glow-disabled: "<red>Glow successfully disabled!"
+glow-disabled-others: "<red>Disabled glow of %player_name%!"
+glow-disabled-all: "<red>Disabled glow of everyone online!"
+not-a-valid-color: "<red>Not a valid glow color!" # Este falta
+not-a-valid-target: "<red>Player %player_name% is not online!"
+color-already-selected: "<red>You already have selected that color."
+disabled-world: "<red>Glow is disabled in this world!"
+reload: "<blue>Plugin configuration file reloaded successfully!"
 
-player-not-found: "<red>Player not found."
-
-# Admin executor feedback
-set-glow-others: "<green>Glow applied to the target player."
-off-glow-others: "<yellow>Target player glow disabled."
-off-glow-all: "<yellow>Disabled glow for all online players."
-
-# Player-facing notifications
-glow-enabled: "<green>Your glow is now enabled."
-glow-disabled: "<red>Your glow has been disabled."
-# Fired when entering a disabled world; state is canceled and persistence cleared
-glow-disabled-world: "<yellow>This world does not allow glows. Your glow has been disabled."
-# Optional: used if you choose to notify on join restore
-glow-restored: "<green>Your previous glow has been restored."
-
-# Exceptions
-exception.no-permission: "<red>You don't have permission to do that."
-
-# Admin reload messages
-reload-done: "<green>FancyGlow reloaded successfully."
-reload-failed: "<red>FancyGlow reload failed. See console for details."
+placeholders:
+  no-color: "none"
+  glow-status:
+    false: "<red>Not glowing! ❌"
+    true: "<green>Glowing! ✔</green>"
 
 
 # DO NOT TOUCH THIS!

@@ -1,5 +1,6 @@
 package dev.smartshub.fancyglow.plugin.storage.config;
 
+import dev.smartshub.fancyglow.api.flow.Reloadable;
 import dev.smartshub.fancyglow.plugin.FancyGlow;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -7,7 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 
-public class Configuration extends YamlConfiguration {
+public class Configuration extends YamlConfiguration implements Reloadable {
 
     private final File file;
     private final FancyGlow plugin;
@@ -49,7 +50,8 @@ public class Configuration extends YamlConfiguration {
         }
     }
 
-    public void reloadFile() {
+    @Override
+    public void reload() {
         try {
             loadFile();
         } catch (Exception e) {

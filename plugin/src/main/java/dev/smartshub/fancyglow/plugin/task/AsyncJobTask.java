@@ -19,8 +19,9 @@ public class AsyncJobTask extends BukkitRunnable {
     private final Plugin plugin;
     private final NMSHandler nmsHandler;
     private final GlowStateRegistry glowStateRegistry;
+    private final GlowModeRegistry glowModeRegistry;
 
-    private final int periodTicks;
+    private int periodTicks;
 
     // Steps remaining until next update
     private final Map<UUID, Integer> stepsRemaining = new ConcurrentHashMap<>();
@@ -34,12 +35,28 @@ public class AsyncJobTask extends BukkitRunnable {
         this.plugin = plugin;
         this.nmsHandler = nmsHandler;
         this.glowStateRegistry = glowStateRegistry;
+        this.glowModeRegistry = glowModeRegistry;
         this.periodTicks = Math.max(1, TaskIntervalResolver.resolvePeriodTicks(glowModeRegistry));
-        start();
     }
 
     public void start() {
+        if (!isCancelled()) {
+            this.cancel();
+        }
         this.runTaskTimerAsynchronously(plugin, periodTicks, periodTicks);
+    }
+
+    public void stop() {
+        if (!isCancelled()) {
+            this.cancel();
+        }
+    }
+
+    public void reload() {
+        this.periodTicks = Math.max(1, TaskIntervalResolver.resolvePeriodTicks(glowModeRegistry));
+
+        stepsRemaining.clear();
+        stepsPerUpdate.clear();
     }
 
     @Override
@@ -76,8 +93,7 @@ public class AsyncJobTask extends BukkitRunnable {
 
     private int computeStepsPerUpdate(GlowState state) {
         long tpc = state.getMode().getTicksPerColor();
-        int spu = (int) Math.max(1, tpc / periodTicks);
-        return spu;
+        return (int) Math.max(1, tpc / periodTicks);
     }
 
     private void cleanupCaches(Set<GlowState> states) {
