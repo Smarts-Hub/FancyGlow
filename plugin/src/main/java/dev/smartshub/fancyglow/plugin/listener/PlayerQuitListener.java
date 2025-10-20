@@ -15,7 +15,7 @@ public class PlayerQuitListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        glowHandlingService.handleLeave(event.getPlayer());
+        glowHandlingService.playerQuit(event.getPlayer());
     }
 
 }

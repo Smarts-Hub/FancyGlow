@@ -15,7 +15,7 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        glowHandlingService.handleJoin(event.getPlayer());
+        glowHandlingService.playerJoin(event.getPlayer());
     }
 
 }
