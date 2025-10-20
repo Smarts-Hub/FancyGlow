@@ -42,6 +42,7 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
         // Might a little forced
         return switch (identifier.toLowerCase()) {
             case "is_glowing" -> state != null ? "true" : "false";
+            case "glow_status" -> state != null ? (state.getCurrentColor() != null ? "active" : "inactive") : "none";
             case "glow_color" -> state != null && state.getCurrentColor() != null ? state.getCurrentColor().toString().toUpperCase() : "";
             case "glow_mode" -> state != null && state.getMode() != null ? state.getMode().getId() : "";
             case "glow_display_name" -> state != null && state.getMode() != null && state.getMode().getDisplayName() != null ? state.getMode().getDisplayName() : "";
