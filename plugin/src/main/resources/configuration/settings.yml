@@ -1,11 +1,33 @@
-team-handling: true
+#   _____      _   _   _
+#  / ____|    | | | | (_)
+# | (___   ___| |_| |_ _ _ __   __ _ ___
+#  \___ \ / _ \ __| __| | '_ \ / _` / __|
+#  ____) |  __/ |_| |_| | | | | (_| \__ \
+# |_____/ \___|\__|\__|_|_| |_|\__, |___/
+#                               __/ |
+#                              |___/
+#
+# Settings configuration file
+# Support: https://discord.smartshub.dev/
+# Documentation: https://docs.smartshub.dev/fancy-glow/introduction/
+
+# Should keep player glows after they leave the server and rejoin?
 persistent-glow: true
 
+# Worlds where glow is enabled or disabled
 glow-worlds:
+  # modes: "whitelist" or "blacklist"
+  # * whitelist - glow is only enabled in the listed worlds
+   # * blacklist - glow is enabled in all worlds except the listed ones
   mode: blacklist
   list:
     - world_nether
     - disabled_world
+
+
+# Should the plugin send packets for manage glow or only
+# update the placeholder that returns ChatColor values?
+team-handling: true
 
 # DO NOT TOUCH THIS!
 config-version: 1

@@ -1,20 +1,29 @@
+#  __  __
+# |  \/  |
+# | \  / | ___  ___ ___  __ _  __ _  ___  ___
+# | |\/| |/ _ \/ __/ __|/ _` |/ _` |/ _ \/ __|
+# | |  | |  __/\__ \__ \ (_| | (_| |  __/\__ \
+# |_|  |_|\___||___/___/\__,_|\__, |\___||___/
+#                              __/ |
+#                             |___/
+# Messages configuration file
+# * Formatting: MiniMessage (https://docs.advntr.dev/minimessage/format)
+# * PlaceholderAPI is supported in every message
+# * If you want to avoid a message, simply replace it with empty: ""
+# Support: https://discord.smartshub.dev/
+# Documentation: https://docs.smartshub.dev/fancy-glow/introduction/
+
 no-permission: "<red>You do not have permission to perform this!"
 glow-enabled: "<green>Glow successfully enabled!"
 glow-disabled: "<red>Glow successfully disabled!"
 glow-disabled-others: "<red>Disabled glow of %player_name%!"
 glow-disabled-all: "<red>Disabled glow of everyone online!"
-not-a-valid-color: "<red>Not a valid glow color!" # Este falta
-not-a-valid-target: "<red>Player %player_name% is not online!"
-color-already-selected: "<red>You already have selected that color."
+color-not-valid: "<red>Not a valid glow color!"
+target-not-valid: "<red>Player %player_name% is not online!"
 disabled-world: "<red>Glow is disabled in this world!"
-reload: "<blue>Plugin configuration file reloaded successfully!"
-
-placeholders:
-  no-color: "none"
-  glow-status:
-    false: "<red>Not glowing! ❌"
-    true: "<green>Glowing! ✔</green>"
-
+cmd-for-players: "<red>This command can only be executed by players!"
+glow-set-others: "<green>Color of %player_name%'s glow set correctly!%!"
+reloaded: "<blue>Plugin configuration file reloaded successfully!"
 
 # DO NOT TOUCH THIS!
 config-version: 1
