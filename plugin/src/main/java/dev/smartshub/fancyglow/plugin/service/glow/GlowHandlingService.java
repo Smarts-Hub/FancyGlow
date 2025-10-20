@@ -63,7 +63,6 @@ public class GlowHandlingService {
 
         glowEffectService.applyGlowEffect(player, state);
         glowStateRegistry.register(state);
-        notifyService.sendChat(player, "glow-enabled");
 
         if (glowPolicyService.isPersistent()) return;
         glowPersistenceService.saveMode(player.getUniqueId(), glowMode.getId());
@@ -97,8 +96,6 @@ public class GlowHandlingService {
         if (glowPolicyService.isPersistent()) {
             glowPersistenceService.removeMode(player.getUniqueId());
         }
-
-        notifyService.sendChat(player, "glow-disabled");
     }
 
     public void offOthers(Player toDisable) {

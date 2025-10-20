@@ -1,6 +1,7 @@
 package dev.smartshub.fancyglow.plugin.service.flow;
 
 import dev.smartshub.fancyglow.api.flow.Reloadable;
+import dev.smartshub.fancyglow.plugin.FancyGlow;
 import dev.smartshub.fancyglow.plugin.service.config.ConfigService;
 import dev.smartshub.fancyglow.plugin.registry.GlowModeRegistry;
 import dev.smartshub.fancyglow.plugin.task.AsyncJobTask;
