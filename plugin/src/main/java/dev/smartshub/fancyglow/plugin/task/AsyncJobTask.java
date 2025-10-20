@@ -22,6 +22,7 @@ public class AsyncJobTask extends BukkitRunnable {
     private final GlowModeRegistry glowModeRegistry;
 
     private int periodTicks;
+    private boolean isScheduled = false;
 
     // Steps remaining until next update
     private final Map<UUID, Integer> stepsRemaining = new ConcurrentHashMap<>();
@@ -37,18 +38,32 @@ public class AsyncJobTask extends BukkitRunnable {
         this.glowStateRegistry = glowStateRegistry;
         this.glowModeRegistry = glowModeRegistry;
         this.periodTicks = Math.max(1, TaskIntervalResolver.resolvePeriodTicks(glowModeRegistry));
+        this.start();
     }
 
     public void start() {
-        if (!isCancelled()) {
-            this.cancel();
+        if (isScheduled) {
+            try {
+                if (!isCancelled()) {
+                    this.cancel();
+                }
+            } catch (IllegalStateException ignored) {
+            }
         }
+
         this.runTaskTimerAsynchronously(plugin, periodTicks, periodTicks);
+        isScheduled = true;
     }
 
     public void stop() {
-        if (!isCancelled()) {
-            this.cancel();
+        if (isScheduled) {
+            try {
+                if (!isCancelled()) {
+                    this.cancel();
+                }
+            } catch (IllegalStateException ignored) {
+            }
+            isScheduled = false;
         }
     }
 

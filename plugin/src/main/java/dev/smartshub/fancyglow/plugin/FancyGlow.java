@@ -49,6 +49,7 @@ public class FancyGlow extends JavaPlugin {
     private GlowHandlingService glowHandlingService;
     private LifecycleService lifecycleService;
     private NotifyService notifyService;
+    private AsyncJobTask asyncJobTask;
 
     @Override
     public void onEnable() {
@@ -120,7 +121,7 @@ public class FancyGlow extends JavaPlugin {
 
         var lamp = BukkitLamp.builder(this)
                 .parameterTypes(builder -> {
-                    builder.addParameterType(GlowMode.class, new GlowModeParameter(glowModeRegistry, notifyService));
+                    builder.addParameterType(GlowMode.class, new GlowModeParameter(glowModeRegistry));
                     builder.addParameterType(Player.class, new PlayerParameter(notifyService));
                 })
                 .exceptionHandler(exceptionHandler)
