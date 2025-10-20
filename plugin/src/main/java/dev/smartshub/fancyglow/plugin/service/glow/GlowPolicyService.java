@@ -2,6 +2,7 @@ package dev.smartshub.fancyglow.plugin.service.glow;
 
 import dev.smartshub.fancyglow.api.config.ConfigType;
 import dev.smartshub.fancyglow.plugin.service.config.ConfigService;
+import dev.smartshub.fancyglow.plugin.service.notify.NotifyService;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -9,9 +10,11 @@ import java.util.List;
 public class GlowPolicyService {
 
     private final ConfigService configService;
+    private final NotifyService notifyService;
 
-    public GlowPolicyService(ConfigService configService) {
+    public GlowPolicyService(ConfigService configService, NotifyService notifyService) {
         this.configService = configService;
+        this.notifyService = notifyService;
     }
 
     public boolean isWorldDisabled(Player player) {
@@ -31,6 +34,14 @@ public class GlowPolicyService {
             case "blacklist" -> isInList;
             default -> false;
         };
+    }
+
+    public void checkAndNotifyWorldStatus(Player player) {
+        if (isWorldDisabled(player)) {
+            notifyService.sendChat(player, "disabled-world");
+        } else {
+            notifyService.sendChat(player, "enabled-world");
+        }
     }
 
     public boolean isPersistent() {

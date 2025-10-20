@@ -54,7 +54,7 @@ public class GlowHandlingService {
 
     public void color(Player player, GlowMode glowMode) {
         if (glowPolicyService.isWorldDisabled(player)) {
-            notifyService.sendChat(player, "world-disabled");
+            notifyService.sendChat(player, "disabled-world");
             return;
         }
 

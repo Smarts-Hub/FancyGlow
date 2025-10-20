@@ -26,23 +26,36 @@ public class GlowCommand {
 
     @Subcommand("color")
     public void color(BukkitCommandActor actor, GlowMode glowMode) {
-        glowHandlingService.color(actor, glowMode);
+        if(!actor.isPlayer()) {
+            notifyService.sendChat(actor.sender(), "cmd-for-players");
+            return;
+        }
+        glowHandlingService.color(actor.asPlayer(), glowMode);
     }
 
     @Subcommand("toggle")
     public void toggle(BukkitCommandActor actor) {
-        glowHandlingService.toggle(actor);
+        if(!actor.isPlayer()) {
+            notifyService.sendChat(actor.sender(), "cmd-for-players");
+            return;
+        }
+        glowHandlingService.toggle(actor.asPlayer());
     }
 
     @Subcommand("off")
     public void off(BukkitCommandActor actor) {
-        glowHandlingService.off(actor);
+        if(!actor.isPlayer()) {
+            notifyService.sendChat(actor.sender(), "cmd-for-players");
+            return;
+        }
+        glowHandlingService.off(actor.asPlayer());
     }
 
     @Subcommand("set")
     @CommandPermission("fancyglow.admin")
     public void set(BukkitCommandActor actor, Player player, GlowMode glowMode) {
-        glowHandlingService.set(actor, player, glowMode);
+        glowHandlingService.set(player, glowMode);
+        notifyService.sendChat(actor.sender(), "glow-set-others");
     }
 
     @Subcommand("off-to")
@@ -63,6 +76,7 @@ public class GlowCommand {
     @CommandPermission("fancyglow.admin")
     public void reload(BukkitCommandActor actor) {
         lifecycleService.reload();
+        notifyService.sendChat(actor.sender(), "reloaded");
     }
 
 }
