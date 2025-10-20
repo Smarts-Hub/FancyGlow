@@ -17,9 +17,14 @@ import dev.smartshub.fancyglow.plugin.listener.PlayerJoinListener;
 import dev.smartshub.fancyglow.plugin.listener.PlayerQuitListener;
 import dev.smartshub.fancyglow.plugin.registry.GlowStateRegistry;
 import dev.smartshub.fancyglow.plugin.service.config.ConfigService;
+import dev.smartshub.fancyglow.plugin.service.flow.LifecycleService;
+import dev.smartshub.fancyglow.plugin.service.glow.GlowEffectService;
 import dev.smartshub.fancyglow.plugin.service.glow.GlowHandlingService;
+import dev.smartshub.fancyglow.plugin.service.glow.GlowPersistenceService;
+import dev.smartshub.fancyglow.plugin.service.glow.GlowPolicyService;
 import dev.smartshub.fancyglow.plugin.service.notify.NotifyService;
 import dev.smartshub.fancyglow.plugin.storage.database.connection.DatabaseConnection;
+import dev.smartshub.fancyglow.plugin.storage.database.dao.PlayerGlowDAO;
 import dev.smartshub.fancyglow.plugin.storage.database.table.SchemaCreator;
 import dev.smartshub.fancyglow.plugin.task.AsyncJobTask;
 import org.bukkit.Bukkit;
@@ -38,9 +43,12 @@ public class FancyGlow extends JavaPlugin {
     private GlowModeRegistry glowModeRegistry;
     private GlowStateRegistry glowStateRegistry;
     private NMSHandler nmsHandler;
+    private GlowEffectService glowEffectService;
+    private GlowPersistenceService glowPersistenceService;
+    private GlowPolicyService glowPolicyService;
     private GlowHandlingService glowHandlingService;
+    private LifecycleService lifecycleService;
     private NotifyService notifyService;
-    private AsyncJobTask asyncJobTask;
 
     @Override
     public void onEnable() {
@@ -85,19 +93,25 @@ public class FancyGlow extends JavaPlugin {
 
     private void initServices() {
         notifyService = new NotifyService(messageParser, messageRepository);
-        glowHandlingService = new GlowHandlingService(nmsHandler, glowStateRegistry, glowModeRegistry,
-                configService, notifyService);
+
+        glowEffectService = new GlowEffectService(nmsHandler, notifyService);
+        glowPersistenceService = new GlowPersistenceService(new PlayerGlowDAO());
+        glowPolicyService = new GlowPolicyService(configService, notifyService);
+        glowHandlingService = new GlowHandlingService(glowEffectService, glowPersistenceService, glowPolicyService,
+                glowModeRegistry, glowStateRegistry, notifyService);
+
+        lifecycleService = new LifecycleService(configService, glowModeRegistry);
     }
 
     private void startTicking() {
-        this.asyncJobTask = new AsyncJobTask(this, nmsHandler, glowStateRegistry, glowModeRegistry);
+        lifecycleService.setAsyncJobTask(new AsyncJobTask(this, nmsHandler, glowStateRegistry, glowModeRegistry));
     }
 
     private void registerListeners() {
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new PlayerJoinListener(glowHandlingService), this);
         pm.registerEvents(new PlayerQuitListener(glowHandlingService), this);
-        pm.registerEvents(new PlayerChangeWorldListener(glowHandlingService), this);
+        pm.registerEvents(new PlayerChangeWorldListener(glowHandlingService, glowPolicyService), this);
     }
 
     private void registerCommands() {
@@ -106,13 +120,13 @@ public class FancyGlow extends JavaPlugin {
 
         var lamp = BukkitLamp.builder(this)
                 .parameterTypes(builder -> {
-                    builder.addParameterType(GlowMode.class, new GlowModeParameter(glowModeRegistry));
-                    builder.addParameterType(Player.class, new PlayerParameter());
+                    builder.addParameterType(GlowMode.class, new GlowModeParameter(glowModeRegistry, notifyService));
+                    builder.addParameterType(Player.class, new PlayerParameter(notifyService));
                 })
                 .exceptionHandler(exceptionHandler)
                 .build();
 
-        lamp.register(new GlowCommand(glowHandlingService, configService, this));
+        lamp.register(new GlowCommand(glowHandlingService, lifecycleService, notifyService));
     }
 
     private void hook() {
