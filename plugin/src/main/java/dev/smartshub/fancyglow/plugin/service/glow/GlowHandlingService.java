@@ -64,26 +64,44 @@ public class GlowHandlingService {
         glowEffectService.applyGlowEffect(player, state);
         glowStateRegistry.register(state);
 
-        if (glowPolicyService.isPersistent()) return;
-        glowPersistenceService.saveMode(player.getUniqueId(), glowMode.getId());
+        if (!glowPolicyService.isPersistent()) return;
+
+        glowPersistenceService.saveMode(player.getUniqueId(), glowMode.getId())
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
     }
 
+
     public void toggle(Player player) {
+        System.out.println("Entered in toggle method for player: " + player.getName());
         GlowState currentState = glowStateRegistry.getGlowStateByPlayer(player.getUniqueId());
 
         if (currentState != null) {
-            off(player);
+            System.out.println("Toggling off glow for player: " + player.getName());
+            System.out.println("Current State is not null: " + currentState.getCurrentColor() + " " + currentState.getMode().getId());
+            System.out.println("Calling off method (but keeping persistence).");
+
+            glowEffectService.removeGlowEffect(player);
+            glowStateRegistry.unregister(currentState);
             return;
         }
 
         glowPersistenceService.getStoredMode(player.getUniqueId())
                 .thenAccept(optionalModeId -> {
+                    System.out.println("Optional Mode ID: " + optionalModeId);
                     if (optionalModeId.isEmpty()) return;
+
                     GlowMode mode = glowModeRegistry.getGlowModeById(optionalModeId.get());
+                    System.out.println("Retrieved Mode: " + (mode != null ? mode.getId() : "null"));
                     if (mode == null) return;
+
                     color(player, mode);
+                    System.out.println("Applied glow mode: " + mode.getId() + " to player: " + player.getName());
                 });
     }
+
 
     public void off(Player player) {
         glowEffectService.removeGlowEffect(player);

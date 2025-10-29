@@ -43,8 +43,8 @@ public class PlayerGlowDAO {
         });
     }
 
-    public void savePlayerGlowMode(UUID playerId, String glowModeId) {
-        CompletableFuture.runAsync(() -> {
+    public CompletableFuture<Void> savePlayerGlowMode(UUID playerId, String glowModeId) {
+        return CompletableFuture.runAsync(() -> {
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(INSERT_OR_UPDATE)) {
 
@@ -77,4 +77,5 @@ public class PlayerGlowDAO {
         return getPlayerGlowMode(playerId)
                 .thenApply(Optional::isPresent);
     }
+
 }
