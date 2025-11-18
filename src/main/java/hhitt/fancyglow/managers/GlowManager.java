@@ -39,22 +39,20 @@ public class GlowManager {
     };
 
     private final FancyGlow plugin;
-
     private final Set<UUID> flashingPlayerSet;
     private final Set<UUID> multicolorPlayerSet;
     private final ScoreboardManager scoreboardManager;
+    private final TabIntegration tabIntegration;
 
     private BukkitTask flashingTask;
     private BukkitTask multicolorTask;
 
     public GlowManager(FancyGlow plugin) {
         this.plugin = plugin;
-
         this.flashingPlayerSet = new HashSet<>();
         this.multicolorPlayerSet = new HashSet<>();
-
-        // It could be null at this point?
         this.scoreboardManager = plugin.getServer().getScoreboardManager();
+        this.tabIntegration = new TabIntegration(plugin);
     }
 
     public boolean toggleMulticolorGlow(Player player) {
@@ -77,12 +75,6 @@ public class GlowManager {
         multicolorPlayerSet.remove(player.getUniqueId());
     }
 
-    /**
-     * Toggles player flashing mode status.
-     *
-     * @param player Player to change status.
-     * @return Returns true is mode has been enabled, false if disabled.
-     */
     public boolean toggleFlashingGlow(Player player) {
         if (isFlashingTaskActive(player)) {
             disableFlashing(player);
@@ -105,40 +97,43 @@ public class GlowManager {
     public void setGlow(Player player, ChatColor color) {
         // Remove any existing glow
         removeGlow(player);
-        // Add the player to the team and enable glowing
-        getOrCreateTeam(color).addEntry(ChatColor.stripColor(player.getName()));
+        
+        // Get or create team
+        Team team = getOrCreateTeam(color);
+        
+        // Add player to scoreboard team
+        String cleanName = ChatColor.stripColor(player.getName());
+        team.addEntry(cleanName);
         player.setGlowing(true);
+        
+        // Apply TAB team color if TAB is available
+        tabIntegration.setPlayerTeamColor(player, color);
     }
 
     public void removeGlow(Player player) {
-        // Remove glow from player
         player.setGlowing(false);
-        // Remove from any existing color team
         removePlayerFromAllTeams(player);
+        
+        // Reset TAB team color if TAB is available
+        tabIntegration.resetPlayerTeamColor(player);
     }
 
     public void removePlayerFromAllTeams(Player player) {
         Scoreboard board = scoreboardManager.getMainScoreboard();
         String cleanName = ChatColor.stripColor(player.getName());
 
-        // Handle remove if rainbow selected
         if (isMulticolorTaskActive(player)) {
-            // Remove from multicolor set.
             multicolorPlayerSet.remove(player.getUniqueId());
         }
 
-        // Same as above but for flashing task 😎
         if (isFlashingTaskActive(player)) {
-            // Remove from flashing set.
             flashingPlayerSet.remove(player.getUniqueId());
         }
 
-        // Attempt to remove player from any color team
-        Team team;
+        // Remove player from any color team
         for (final ChatColor color : COLORS_ARRAY) {
-            team = board.getTeam(color.name());
-            // fix #31: ISE (IllegalStateException) due to entry removal when team does not have it.
-            if ((team != null) && team.hasEntry(cleanName)) {
+            Team team = board.getTeam(color.name());
+            if (team != null && team.hasEntry(cleanName)) {
                 team.removeEntry(cleanName);
             }
         }
@@ -221,5 +216,9 @@ public class GlowManager {
     public boolean isDeniedWorld(String worldName) {
         List<String> noAllowedWorlds = plugin.getConfiguration().getStringList("Disabled_Worlds");
         return noAllowedWorlds.contains(worldName);
+    }
+    
+    public TabIntegration getTabIntegration() {
+        return tabIntegration;
     }
 }

@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class FlashingTask extends BukkitRunnable {
@@ -19,16 +18,17 @@ public class FlashingTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        // Cancel task if none at this set
-        if (glowManager.getFlashingPlayerSet().isEmpty()) return;
+        if (glowManager.getFlashingPlayerSet().isEmpty()) {
+            return;
+        }
 
-        Player player;
         for (UUID uuid : glowManager.getFlashingPlayerSet()) {
-            player = Objects.requireNonNull(Bukkit.getPlayer(uuid));
-            // Ignore if player is on respawn screen.
-            if (player.isDead()) continue;
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null || !player.isOnline() || player.isDead()) {
+                continue;
+            }
 
-            // Toggle glowing state.
+            // Toggle glowing state
             player.setGlowing(!player.isGlowing());
         }
     }

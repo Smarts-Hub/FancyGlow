@@ -8,6 +8,7 @@
 # User-specific stuff
 jars/
 run/
+/bin
 
 .idea/**/discord.xml
 .idea/**/saveactions_settings.xml

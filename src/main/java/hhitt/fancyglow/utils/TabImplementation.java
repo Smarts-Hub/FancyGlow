@@ -20,6 +20,7 @@ public class TabImplementation {
     private final PlayerGlowManager playerGlowManager;
 
     private String tabVersion;
+    private boolean initialized = false;
 
     public TabImplementation(FancyGlow plugin) {
         this.plugin = plugin;
@@ -29,72 +30,88 @@ public class TabImplementation {
 
     public void initialize() {
         Plugin tabPlugin = plugin.getServer().getPluginManager().getPlugin("TAB");
-        if (tabPlugin == null || !tabPlugin.isEnabled()) return;
+        if (tabPlugin == null || !tabPlugin.isEnabled()) {
+            return;
+        }
 
         tabVersion = tabPlugin.getDescription().getVersion();
         if (!isCompatibleTAB(stripTags(tabVersion), "5.0.4")) {
-            plugin.getLogger().warning("Any TAB implementation won't work due to version incompatibility.");
+            plugin.getLogger().warning("TAB implementation won't work due to version incompatibility.");
             plugin.getLogger().warning("You need at least version 5.0.4 or newer. Current version: " + tabVersion);
             return;
         }
 
-        // Init method right at the constructor, not sure if recommended.
         hook();
     }
 
     private void hook() {
         boolean autoTag = configuration.getBoolean("Auto_Tag", false);
+        
+        plugin.getLogger().info("Compatible version of TAB " + tabVersion + " has been found.");
+        
         if (!autoTag) {
-            // Notify player that compatible version of TAB has been found and can be used.
-            plugin.getLogger().info("Compatible version of TAB has been found.");
-            plugin.getLogger().info("You can enable the Auto_Tag option in your config to use it.");
-        } else {
-            // Log message if TAB is now being used.
-            plugin.getLogger().info("TAB " + tabVersion + " has been found, using it.");
+            plugin.getLogger().info("You can enable the Auto_Tag option in your config to automatically apply glow colors to TAB prefixes.");
+            plugin.getLogger().info("When enabled, TAB prefixes will be modified to include the glow color.");
+            return;
         }
 
-        // Register player placeholder directly to tab.
-        TabAPI instance = TabAPI.getInstance();
-        EventBus eventBus = Objects.requireNonNull(instance.getEventBus(), "TAB EventBus is not available.");
+        try {
+            TabAPI instance = TabAPI.getInstance();
+            EventBus eventBus = Objects.requireNonNull(instance.getEventBus(), "TAB EventBus is not available.");
 
-        // Register TAB listener.
-        eventBus.register(PlayerLoadEvent.class, event -> {
-            // Ignore if option not enabled.
-            if (!autoTag) return;
+            plugin.getLogger().info("Auto_Tag is enabled. TAB will be used to display glow colors.");
+            
+            // Register TAB listener for auto-tagging
+            eventBus.register(PlayerLoadEvent.class, event -> {
+                if (!event.isJoin()) {
+                    applyTagPrefix(event, instance);
+                    return;
+                }
 
-            // Run normally if reloading tab
-            if (!event.isJoin()) {
-                applyTagPrefix(event, instance);
-                return;
-            }
+                // Delay for join events to ensure everything is loaded
+                Bukkit.getScheduler().runTaskLater(plugin, () -> applyTagPrefix(event, instance), 15L);
+            });
 
-            // Run with a delayed task if player is joining.
-            Bukkit.getScheduler().runTaskLater(plugin, () -> applyTagPrefix(event, instance), 15L);
-        });
+            initialized = true;
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to hook into TAB: " + e.getMessage());
+        }
     }
 
     private void applyTagPrefix(PlayerLoadEvent event, TabAPI instance) {
-        //Use ticks to ensure PlayerGlowManager#getPlayerGlowColor doesn't get many calls.
-        int ticks = plugin.getConfiguration().getInt("Rainbow_Update_Interval");
-        if (ticks <= 0) {
-            ticks = 1;
+        try {
+            int ticks = plugin.getConfiguration().getInt("Rainbow_Update_Interval", 10);
+            if (ticks <= 0) {
+                ticks = 1;
+            }
+
+            // Register placeholder for glow color
+            instance.getPlaceholderManager().registerPlayerPlaceholder(
+                    "%fancyglow_tab_color%",
+                    50 * ticks,
+                    player -> {
+                        Player bukkitPlayer = (Player) player.getPlayer();
+                        return bukkitPlayer != null ? playerGlowManager.getPlayerGlowColor(bukkitPlayer) : "";
+                    });
+
+            NameTagManager nameTagManager = Objects.requireNonNull(
+                    instance.getNameTagManager(), 
+                    "TAB NameTagManager is unavailable."
+            );
+            
+            String originalPrefix = nameTagManager.getOriginalPrefix(event.getPlayer());
+            if (originalPrefix == null) {
+                originalPrefix = "";
+            }
+
+            // Append the glow color placeholder to the prefix
+            String modifiedPrefix = originalPrefix + "%fancyglow_tab_color%";
+            nameTagManager.setPrefix(event.getPlayer(), modifiedPrefix);
+            
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to apply TAB prefix for player: " + e.getMessage());
         }
-
-        instance.getPlaceholderManager().registerPlayerPlaceholder(
-                "%fancyglow_tab_color%",
-                50 * ticks,
-                player -> playerGlowManager.getPlayerGlowColor((Player) player.getPlayer()));
-
-        NameTagManager nameTagManager = Objects.requireNonNull(instance.getNameTagManager(), "TAB NameTagManager is unavailable.");
-        String originalPrefix = nameTagManager.getOriginalPrefix(event.getPlayer());
-
-        // Somehow tab still fails sometimes to retrieve player original prefix.
-        if (originalPrefix == null) return;
-
-        String modifiedPrefix = originalPrefix + "%fancyglow_tab_color%";
-        nameTagManager.setPrefix(event.getPlayer(), modifiedPrefix);
     }
-
 
     private boolean isCompatibleTAB(String tabVersion, String desiredVersion) {
         if (tabVersion.equals(desiredVersion)) return true;
@@ -103,11 +120,13 @@ public class TabImplementation {
             String[] versionParts = tabVersion.split("\\.");
             String[] desiredVersionParts = desiredVersion.split("\\.");
 
-            for (int i = 0; i < desiredVersionParts.length; i++) {
+            for (int i = 0; i < Math.min(versionParts.length, desiredVersionParts.length); i++) {
                 int current = Integer.parseInt(versionParts[i]);
                 int required = Integer.parseInt(desiredVersionParts[i]);
 
-                if (current != required) return current > required;
+                if (current != required) {
+                    return current > required;
+                }
             }
 
             return true;
@@ -119,5 +138,9 @@ public class TabImplementation {
 
     public static String stripTags(final String version) {
         return version.replaceAll("[-;+].+", "");
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 }
