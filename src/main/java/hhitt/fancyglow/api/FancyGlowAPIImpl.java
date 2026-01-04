@@ -1,6 +1,5 @@
 package hhitt.fancyglow.api;
 
-
 import hhitt.fancyglow.FancyGlow;
 import hhitt.fancyglow.managers.GlowManager;
 import hhitt.fancyglow.managers.PlayerGlowManager;
@@ -50,11 +49,11 @@ public class FancyGlowAPIImpl implements FancyGlowAPI {
     @Override
     public void setFlashingMode(Player player, boolean status) {
         if (status) {
-            glowManager.enableRainbow(player);
+            // FIX: Was calling enableRainbow before
+            glowManager.enableFlashing(player);
             return;
         }
-
-        glowManager.disableRainbow(player);
+        glowManager.disableFlashing(player);
     }
 
     @Override
@@ -68,7 +67,6 @@ public class FancyGlowAPIImpl implements FancyGlowAPI {
             glowManager.enableRainbow(player);
             return;
         }
-
         glowManager.disableRainbow(player);
     }
 }

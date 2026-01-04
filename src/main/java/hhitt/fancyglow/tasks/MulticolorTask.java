@@ -28,7 +28,6 @@ public class MulticolorTask extends BukkitRunnable {
             return;
         }
 
-        // Cycle through colors
         ChatColor currentColor = GlowManager.COLORS_ARRAY[currentIndex];
         Team currentTeam = glowManager.getOrCreateTeam(currentColor);
 
@@ -41,24 +40,23 @@ public class MulticolorTask extends BukkitRunnable {
             String cleanName = player.getName();
             Team lastTeam = playerGlowManager.findPlayerTeam(player);
 
-            // Update the Minecraft Team (This handles the actual glowing outline)
+            // If the player is in an old color team, remove them first
             if (lastTeam != null && !lastTeam.equals(currentTeam)) {
                 lastTeam.removeEntry(cleanName);
             }
 
+            // Join the new color team
             if (!currentTeam.hasEntry(cleanName)) {
                 currentTeam.addEntry(cleanName);
             }
 
+            // Ensure glowing is actually on
             if (!player.isGlowing()) {
                 player.setGlowing(true);
             }
-            
-            // NOTE: We do NOT need to update TAB here. 
-            // The placeholder %fancyglow_tab_color% handles the nametag color automatically.
         }
 
-        // Move to next color index
+        // Cycle index
         currentIndex = (currentIndex + 1) % GlowManager.COLORS_ARRAY.length;
     }
 }
