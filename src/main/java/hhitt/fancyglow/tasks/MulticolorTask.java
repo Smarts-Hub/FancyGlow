@@ -28,44 +28,37 @@ public class MulticolorTask extends BukkitRunnable {
             return;
         }
 
+        // Cycle through colors
         ChatColor currentColor = GlowManager.COLORS_ARRAY[currentIndex];
         Team currentTeam = glowManager.getOrCreateTeam(currentColor);
 
         for (UUID uuid : glowManager.getMulticolorPlayerSet()) {
             Player player = Bukkit.getPlayer(uuid);
-            if (player == null || !player.isOnline() || player.isDead()) {
+            if (player == null || !player.isOnline()) {
                 continue;
             }
 
-            String cleanName = ChatColor.stripColor(player.getName());
+            String cleanName = player.getName();
             Team lastTeam = playerGlowManager.findPlayerTeam(player);
 
-            // Remove from old team first
+            // Update the Minecraft Team (This handles the actual glowing outline)
             if (lastTeam != null && !lastTeam.equals(currentTeam)) {
                 lastTeam.removeEntry(cleanName);
             }
 
-            // Add to new team
             if (!currentTeam.hasEntry(cleanName)) {
                 currentTeam.addEntry(cleanName);
             }
 
-            // Ensure player is glowing
             if (!player.isGlowing()) {
                 player.setGlowing(true);
             }
-
-            // Update scoreboard if necessary
-            if (currentTeam.getScoreboard() != null && 
-                player.getScoreboard() != currentTeam.getScoreboard()) {
-                player.setScoreboard(currentTeam.getScoreboard());
-            }
             
-            // Update TAB team color
-            glowManager.getTabIntegration().setPlayerTeamColor(player, currentColor);
+            // NOTE: We do NOT need to update TAB here. 
+            // The placeholder %fancyglow_tab_color% handles the nametag color automatically.
         }
 
-        // Increment for next color
+        // Move to next color index
         currentIndex = (currentIndex + 1) % GlowManager.COLORS_ARRAY.length;
     }
 }

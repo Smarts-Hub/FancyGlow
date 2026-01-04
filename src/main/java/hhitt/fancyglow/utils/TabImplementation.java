@@ -6,7 +6,6 @@ import hhitt.fancyglow.managers.PlayerGlowManager;
 import me.neznamy.tab.api.TabAPI;
 import me.neznamy.tab.api.event.EventBus;
 import me.neznamy.tab.api.event.player.PlayerLoadEvent;
-import me.neznamy.tab.api.nametag.NameTagManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -18,8 +17,6 @@ public class TabImplementation {
     private final FancyGlow plugin;
     private final YamlDocument configuration;
     private final PlayerGlowManager playerGlowManager;
-
-    private String tabVersion;
     private boolean initialized = false;
 
     public TabImplementation(FancyGlow plugin) {
@@ -34,42 +31,34 @@ public class TabImplementation {
             return;
         }
 
-        tabVersion = tabPlugin.getDescription().getVersion();
-        if (!isCompatibleTAB(stripTags(tabVersion), "5.0.4")) {
-            plugin.getLogger().warning("TAB implementation won't work due to version incompatibility.");
-            plugin.getLogger().warning("You need at least version 5.0.4 or newer. Current version: " + tabVersion);
-            return;
-        }
-
         hook();
     }
 
     private void hook() {
-        boolean autoTag = configuration.getBoolean("Auto_Tag", false);
-        
-        plugin.getLogger().info("Compatible version of TAB " + tabVersion + " has been found.");
-        
-        if (!autoTag) {
-            plugin.getLogger().info("You can enable the Auto_Tag option in your config to automatically apply glow colors to TAB prefixes.");
-            plugin.getLogger().info("When enabled, TAB prefixes will be modified to include the glow color.");
-            return;
-        }
-
         try {
             TabAPI instance = TabAPI.getInstance();
             EventBus eventBus = Objects.requireNonNull(instance.getEventBus(), "TAB EventBus is not available.");
 
-            plugin.getLogger().info("Auto_Tag is enabled. TAB will be used to display glow colors.");
+            plugin.getLogger().info("Successfully hooked into TAB. Automatic nametag coloring enabled.");
             
-            // Register TAB listener for auto-tagging
-            eventBus.register(PlayerLoadEvent.class, event -> {
-                if (!event.isJoin()) {
-                    applyTagPrefix(event, instance);
-                    return;
-                }
+            // Register the dynamic placeholder for real-time updates (Rainbow/Flashing)
+            instance.getPlaceholderManager().registerPlayerPlaceholder(
+                    "%fancyglow_tab_color%",
+                    100,
+                    tabPlayer -> {
+                        Player bukkitPlayer = (Player) tabPlayer.getPlayer();
+                        return bukkitPlayer != null ? playerGlowManager.getPlayerGlowColor(bukkitPlayer) : "";
+                    });
 
-                // Delay for join events to ensure everything is loaded
-                Bukkit.getScheduler().runTaskLater(plugin, () -> applyTagPrefix(event, instance), 15L);
+            // Automatically inject the placeholder into the player's TAB prefix on join
+            eventBus.register(PlayerLoadEvent.class, event -> {
+                Player player = (Player) event.getPlayer().getPlayer();
+                if (player == null) return;
+
+                // 20 tick delay ensures TAB has loaded the player's group/prefix first
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    applyTagPrefix(player);
+                }, 20L);
             });
 
             initialized = true;
@@ -78,66 +67,17 @@ public class TabImplementation {
         }
     }
 
-    private void applyTagPrefix(PlayerLoadEvent event, TabAPI instance) {
+    /**
+     * Uses the TabIntegration manager to force the placeholder into the prefix.
+     */
+    private void applyTagPrefix(Player player) {
         try {
-            int ticks = plugin.getConfiguration().getInt("Rainbow_Update_Interval", 10);
-            if (ticks <= 0) {
-                ticks = 1;
-            }
-
-            // Register placeholder for glow color
-            instance.getPlaceholderManager().registerPlayerPlaceholder(
-                    "%fancyglow_tab_color%",
-                    50 * ticks,
-                    player -> {
-                        Player bukkitPlayer = (Player) player.getPlayer();
-                        return bukkitPlayer != null ? playerGlowManager.getPlayerGlowColor(bukkitPlayer) : "";
-                    });
-
-            NameTagManager nameTagManager = Objects.requireNonNull(
-                    instance.getNameTagManager(), 
-                    "TAB NameTagManager is unavailable."
-            );
-            
-            String originalPrefix = nameTagManager.getOriginalPrefix(event.getPlayer());
-            if (originalPrefix == null) {
-                originalPrefix = "";
-            }
-
-            // Append the glow color placeholder to the prefix
-            String modifiedPrefix = originalPrefix + "%fancyglow_tab_color%";
-            nameTagManager.setPrefix(event.getPlayer(), modifiedPrefix);
-            
+            // This calls the method in TabIntegration that you were worried about missing!
+            // It appends the color placeholder to the end of the current rank prefix.
+            plugin.getGlowManager().getTabIntegration().setPlayerTeamColor(player, "%fancyglow_tab_color%");
         } catch (Exception e) {
-            plugin.getLogger().warning("Failed to apply TAB prefix for player: " + e.getMessage());
+            plugin.getLogger().warning("Failed to apply automatic TAB prefix: " + e.getMessage());
         }
-    }
-
-    private boolean isCompatibleTAB(String tabVersion, String desiredVersion) {
-        if (tabVersion.equals(desiredVersion)) return true;
-
-        try {
-            String[] versionParts = tabVersion.split("\\.");
-            String[] desiredVersionParts = desiredVersion.split("\\.");
-
-            for (int i = 0; i < Math.min(versionParts.length, desiredVersionParts.length); i++) {
-                int current = Integer.parseInt(versionParts[i]);
-                int required = Integer.parseInt(desiredVersionParts[i]);
-
-                if (current != required) {
-                    return current > required;
-                }
-            }
-
-            return true;
-        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            plugin.getLogger().warning("Failed to parse TAB version numbers: " + tabVersion);
-            return false;
-        }
-    }
-
-    public static String stripTags(final String version) {
-        return version.replaceAll("[-;+].+", "");
     }
 
     public boolean isInitialized() {

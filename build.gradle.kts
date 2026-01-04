@@ -1,18 +1,15 @@
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
-import revxrsal.zapper.gradle.zapper
 
 plugins {
     id("java")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
-    id("io.github.revxrsal.zapper") version "1.0.3"
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
-
     maven("https://jitpack.io/")
     maven("https://libraries.minecraft.net/")
     maven("https://repo.panda-lang.org/releases/")
@@ -30,30 +27,19 @@ dependencies {
     compileOnly(libs.com.github.neznamy.tab.api)
     compileOnly(libs.com.github.retrooper.packetevents.spigot)
 
-    zap(libs.net.kyori.adventure.api)
-    zap(libs.org.bstats.bstats.bukkit)
-    zap(libs.dev.rollczi.litecommands)
-    zap(libs.dev.dejvokep.boosted.yaml)
-    zap(libs.dev.rollczi.litecommands.adventure)
-    zap(libs.net.kyori.adventure.platform.bukkit)
-    zap(libs.net.kyori.adventure.text.minimessage)
+    // Change "zap" to "implementation" for all these:
+    implementation(libs.net.kyori.adventure.api)
+    implementation(libs.org.bstats.bstats.bukkit)
+    implementation(libs.dev.rollczi.litecommands)
+    implementation(libs.dev.dejvokep.boosted.yaml)
+    implementation(libs.dev.rollczi.litecommands.adventure)
+    implementation(libs.net.kyori.adventure.platform.bukkit)
+    implementation(libs.net.kyori.adventure.text.minimessage)
 }
 
 group = "hhitt.fancyglow"
 description = "FancyGlow"
 version = "2.10.3"
-
-zapper {
-    libsFolder = "libraries"
-    relocationPrefix = "${group}.deps"
-
-    repositories { includeProjectRepositories() }
-
-    relocate("net.kyori", "kyori")
-    relocate("org.bstats", "bstats")
-    relocate("dev.rollczi", "litecommands")
-    relocate("dev.dejvokep.boostedyaml", "boostedyaml")
-}
 
 publishing {
     publications {
@@ -81,8 +67,14 @@ tasks {
 
     shadowJar {
         archiveFileName.set("FancyGlow-${project.version}.jar")
-
         destinationDirectory.set(file("$rootDir/jars/"))
+
+        // MOVE your relocations here to prevent conflicts with other plugins
+        val prefix = "${project.group}.deps"
+        relocate("net.kyori", "$prefix.kyori")
+        relocate("org.bstats", "$prefix.bstats")
+        relocate("dev.rollczi", "$prefix.litecommands")
+        relocate("dev.dejvokep.boostedyaml", "$prefix.boostedyaml")
     }
 
     bukkit {

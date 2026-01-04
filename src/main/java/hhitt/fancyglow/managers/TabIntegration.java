@@ -4,6 +4,7 @@ import hhitt.fancyglow.FancyGlow;
 import me.neznamy.tab.api.TabAPI;
 import me.neznamy.tab.api.TabPlayer;
 import me.neznamy.tab.api.nametag.NameTagManager;
+import me.neznamy.tab.api.tablist.TabListFormatManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -18,6 +19,7 @@ public class TabIntegration {
     private final boolean isTabAvailable;
     private TabAPI tabAPI;
     private NameTagManager nameTagManager;
+    private TabListFormatManager tabListFormatManager;
 
     public TabIntegration(FancyGlow plugin) {
         this.plugin = plugin;
@@ -27,6 +29,7 @@ public class TabIntegration {
             try {
                 this.tabAPI = TabAPI.getInstance();
                 this.nameTagManager = tabAPI.getNameTagManager();
+                this.tabListFormatManager = tabAPI.getTabListFormatManager();
                 
                 if (nameTagManager == null) {
                     plugin.getLogger().warning("TAB NameTagManager is disabled. FancyGlow glow colors may be overridden by TAB.");
@@ -39,32 +42,30 @@ public class TabIntegration {
 
     /**
      * Sets the player's nametag prefix in TAB to include the glow color.
-     * This prevents TAB from overriding the glow color by ensuring the team
-     * color matches the glow effect.
+     * Overloaded to accept String for placeholder injection.
      */
-    public void setPlayerTeamColor(Player player, ChatColor color) {
-        if (!isTabAvailable || tabAPI == null || nameTagManager == null) {
+    public void setPlayerTeamColor(Player player, String colorCode) {
+        if (!isTabAvailable || tabAPI == null) {
             return;
         }
 
         try {
             TabPlayer tabPlayer = tabAPI.getPlayer(player.getUniqueId());
-            if (tabPlayer == null) {
-                return;
+            if (tabPlayer == null) return;
+
+            // 1. Handle Nametags (Above Head)
+            if (nameTagManager != null) {
+                String originalPrefix = nameTagManager.getOriginalPrefix(tabPlayer);
+                if (originalPrefix == null) originalPrefix = "";
+                nameTagManager.setPrefix(tabPlayer, originalPrefix + colorCode);
             }
 
-            // Get the original prefix from TAB configuration
-            String originalPrefix = nameTagManager.getOriginalPrefix(tabPlayer);
-            if (originalPrefix == null) {
-                originalPrefix = "";
+            // 2. Handle Tablist (The player list)
+            if (tabListFormatManager != null) {
+                String originalPrefix = tabListFormatManager.getOriginalPrefix(tabPlayer);
+                if (originalPrefix == null) originalPrefix = "";
+                tabListFormatManager.setPrefix(tabPlayer, originalPrefix + colorCode);
             }
-
-            // Append the color code to the end of the prefix to set the team color
-            // The last color in the prefix determines the nametag/glow color
-            String modifiedPrefix = originalPrefix + color.toString();
-            
-            // Set the custom prefix in TAB
-            nameTagManager.setPrefix(tabPlayer, modifiedPrefix);
             
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to set TAB team color for " + player.getName() + ": " + e.getMessage());
@@ -72,89 +73,62 @@ public class TabIntegration {
     }
 
     /**
+     * Original method signature for compatibility with GlowManager.
+     */
+    public void setPlayerTeamColor(Player player, ChatColor color) {
+        setPlayerTeamColor(player, color.toString());
+    }
+
+    /**
      * Resets the player's nametag prefix in TAB to the original value.
      * This removes the custom glow color applied by FancyGlow.
      */
     public void resetPlayerTeamColor(Player player) {
-        if (!isTabAvailable || tabAPI == null || nameTagManager == null) {
+        if (!isTabAvailable || tabAPI == null) {
             return;
         }
 
         try {
             TabPlayer tabPlayer = tabAPI.getPlayer(player.getUniqueId());
-            if (tabPlayer == null) {
-                return;
-            }
+            if (tabPlayer == null) return;
 
-            // Reset to original prefix by setting it to null
-            nameTagManager.setPrefix(tabPlayer, null);
+            // Reset both Managers by passing null
+            if (nameTagManager != null) nameTagManager.setPrefix(tabPlayer, null);
+            if (tabListFormatManager != null) tabListFormatManager.setPrefix(tabPlayer, null);
             
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to reset TAB team color for " + player.getName() + ": " + e.getMessage());
         }
     }
 
-    /**
-     * Pauses TAB's team handling for a player.
-     * This is useful when you want complete control over the player's team
-     * without TAB interfering.
-     */
     public void pauseTeamHandling(Player player) {
-        if (!isTabAvailable || tabAPI == null || nameTagManager == null) {
-            return;
-        }
-
+        if (!isTabAvailable || tabAPI == null || nameTagManager == null) return;
         try {
             TabPlayer tabPlayer = tabAPI.getPlayer(player.getUniqueId());
-            if (tabPlayer == null) {
-                return;
-            }
-
-            nameTagManager.pauseTeamHandling(tabPlayer);
-            
+            if (tabPlayer != null) nameTagManager.pauseTeamHandling(tabPlayer);
         } catch (Exception e) {
-            plugin.getLogger().warning("Failed to pause TAB team handling for " + player.getName() + ": " + e.getMessage());
+            plugin.getLogger().warning("Failed to pause TAB team handling: " + e.getMessage());
         }
     }
 
-    /**
-     * Resumes TAB's team handling for a player.
-     */
     public void resumeTeamHandling(Player player) {
-        if (!isTabAvailable || tabAPI == null || nameTagManager == null) {
-            return;
-        }
-
+        if (!isTabAvailable || tabAPI == null || nameTagManager == null) return;
         try {
             TabPlayer tabPlayer = tabAPI.getPlayer(player.getUniqueId());
-            if (tabPlayer == null) {
-                return;
-            }
-
-            nameTagManager.resumeTeamHandling(tabPlayer);
-            
+            if (tabPlayer != null) nameTagManager.resumeTeamHandling(tabPlayer);
         } catch (Exception e) {
-            plugin.getLogger().warning("Failed to resume TAB team handling for " + player.getName() + ": " + e.getMessage());
+            plugin.getLogger().warning("Failed to resume TAB team handling: " + e.getMessage());
         }
     }
 
-    /**
-     * Checks if TAB integration is available and working.
-     */
     public boolean isAvailable() {
-        return isTabAvailable && tabAPI != null && nameTagManager != null;
+        return isTabAvailable && tabAPI != null;
     }
 
-    /**
-     * Gets the TabAPI instance.
-     */
     public TabAPI getTabAPI() {
         return tabAPI;
     }
 
-    /**
-     * Gets the NameTagManager instance.
-     */
     public NameTagManager getNameTagManager() {
         return nameTagManager;
     }
