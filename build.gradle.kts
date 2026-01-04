@@ -39,7 +39,7 @@ dependencies {
 
 group = "hhitt.fancyglow"
 description = "FancyGlow"
-version = "2.10.3"
+version = "2.10.4"
 
 publishing {
     publications {
