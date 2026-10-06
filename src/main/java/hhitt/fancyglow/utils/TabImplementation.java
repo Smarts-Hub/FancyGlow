@@ -34,11 +34,10 @@ public class TabImplementation {
     private void hook() {
         try {
             TabAPI instance = TabAPI.getInstance();
-            EventBus eventBus = Objects.requireNonNull(instance.getEventBus(), "TAB EventBus is not available.");
 
-            plugin.getLogger().info("Successfully hooked into TAB. Automatic nametag coloring enabled.");
-
-            // Register the dynamic placeholder for real-time updates (Rainbow/Flashing)
+            // Always register the placeholder so %fancyglow_tab_color% is available
+            // regardless of whether Auto_Tag is enabled. Users who put the placeholder
+            // directly in TAB's groups.yml need it to resolve even with Auto_Tag: false.
             instance.getPlaceholderManager().registerPlayerPlaceholder(
                     "%fancyglow_tab_color%",
                     100,
@@ -47,15 +46,35 @@ public class TabImplementation {
                         return bukkitPlayer != null ? playerGlowManager.getPlayerGlowColor(bukkitPlayer) : "";
                     });
 
-            // Automatically inject the placeholder into the player's TAB prefix on join
+            boolean autoTag = plugin.getConfiguration().getBoolean("Auto_Tag", false);
+
+            if (!autoTag) {
+                // Auto_Tag is disabled: the placeholder (%fancyglow_tab_color% or the
+                // PlaceholderAPI %fancyglow_color%) should be placed directly in TAB's
+                // groups.yml tabprefix/tagprefix. TAB resolves it dynamically, so group
+                // changes via LuckPerms apply instantly without /tab reload.
+                plugin.getLogger().info("Successfully hooked into TAB. Auto_Tag is disabled — put %fancyglow_tab_color% in your TAB groups.yml prefixes.");
+                initialized = true;
+                return;
+            }
+
+            // Auto_Tag: true — inject the placeholder into the player's TAB prefix
+            // automatically on every join/reload.
+            // NOTE: This sets a TAB API prefix override which freezes the displayed
+            // prefix. If a player's LuckPerms group changes while they are online, the
+            // new group prefix will not appear until the next /tab reload or re-login.
+            // If you use TAB groups.yml with per-group prefixes containing
+            // %fancyglow_tab_color%, set Auto_Tag to false to avoid this.
+            EventBus eventBus = Objects.requireNonNull(instance.getEventBus(), "TAB EventBus is not available.");
+
+            plugin.getLogger().info("Successfully hooked into TAB. Auto_Tag is enabled — glow color will be injected into TAB prefixes automatically.");
+
             eventBus.register(PlayerLoadEvent.class, event -> {
                 Player player = (Player) event.getPlayer().getPlayer();
                 if (player == null) return;
 
                 // 20 tick delay ensures TAB has loaded the player's group/prefix first
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    applyTagPrefix(player);
-                }, 20L);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> applyTagPrefix(player), 20L);
             });
 
             initialized = true;
@@ -65,12 +84,11 @@ public class TabImplementation {
     }
 
     /**
-     * Uses the TabIntegration manager to force the placeholder into the prefix.
+     * Appends the glow color placeholder to the player's TAB nametag/tablist prefix.
+     * Only called when Auto_Tag is enabled.
      */
     private void applyTagPrefix(Player player) {
         try {
-            // This calls the method in TabIntegration that you were worried about missing!
-            // It appends the color placeholder to the end of the current rank prefix.
             plugin.getGlowManager().getTabIntegration().setPlayerTeamColor(player, "%fancyglow_tab_color%");
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to apply automatic TAB prefix: " + e.getMessage());

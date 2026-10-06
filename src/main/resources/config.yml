@@ -36,6 +36,20 @@ Flash_Rainbow: false
 # Notify players with permission and the server if player has an available update.
 Notify_Updates: true
 
+# TAB integration (requires TAB v5.0.4+ by NEZNAMY).
+# When true, FancyGlow automatically appends the glow color placeholder
+# (%fancyglow_tab_color%) to the player's TAB nametag/tablist prefix on join.
+#
+# Set to FALSE if your TAB groups.yml already contains %fancyglow_color% or
+# %fancyglow_tab_color% in the tabprefix/tagprefix for each group.
+# With Auto_Tag: true, FancyGlow sets a TAB API prefix override that freezes
+# the displayed prefix — when a player's LuckPerms group changes, TAB updates
+# the underlying configured prefix but the frozen override keeps showing the
+# old group text until /tab reload. Putting the placeholder directly in
+# groups.yml avoids this: TAB resolves it dynamically and group changes apply
+# instantly without a reload.
+Auto_Tag: false
+
 Messages:
   # All translations for plugin messages
   No_Permission: "<red>You do not have permission to perform this!"
