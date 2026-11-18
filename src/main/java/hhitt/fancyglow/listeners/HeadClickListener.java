@@ -39,6 +39,12 @@ public class HeadClickListener implements Listener {
         int rainbowSlot = plugin.getConfiguration().getInt("Inventory.Rainbow.Slot", 39);
         int flashingSlot = plugin.getConfiguration().getInt("Inventory.Flashing.Slot", 40);
         int statusSlot = plugin.getConfiguration().getInt("Inventory.Status.Slot", 41);
+
+        // Rainbow/flashing follow the same disabled-world rule as the commands (turning glow off stays allowed).
+        if (event.getSlot() != statusSlot && glowManager.isDeniedWorld(player.getWorld().getName())) {
+            messageHandler.sendMessage(player, Messages.DISABLED_WORLD);
+            return;
+        }
         // Rainbow Slot
         if (rainbowSlot != -1 && event.getSlot() == rainbowSlot) {
             if (!player.hasPermission("fancyglow.rainbow")) {

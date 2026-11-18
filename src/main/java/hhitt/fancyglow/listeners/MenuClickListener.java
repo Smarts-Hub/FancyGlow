@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -30,10 +31,14 @@ public class MenuClickListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
-        Inventory inventoryClicked = e.getClickedInventory();
-        if (inventoryClicked == null || !(inventoryClicked.getHolder() instanceof CreatingInventory)) return;
+        // Cancel every click while the menu is open, not only clicks inside it: shift-clicking, double-click
+        // collecting or number-key swapping from the player's own inventory used to move items into the menu.
+        if (!(e.getView().getTopInventory().getHolder() instanceof CreatingInventory)) return;
 
         e.setCancelled(true);
+
+        Inventory inventoryClicked = e.getClickedInventory();
+        if (inventoryClicked == null || !(inventoryClicked.getHolder() instanceof CreatingInventory)) return;
 
         ItemStack clickedItem = e.getCurrentItem();
         if (clickedItem == null || clickedItem.getType() != Material.LEATHER_CHESTPLATE) return;
@@ -45,6 +50,13 @@ public class MenuClickListener implements Listener {
 
         Player player = (Player) e.getWhoClicked();
         player.closeInventory();
+
+        // Same rule as '/glow color': the menu used to let players pick a color in disabled worlds.
+        if (glowManager.isDeniedWorld(player.getWorld().getName())) {
+            messageHandler.sendMessage(player, Messages.DISABLED_WORLD);
+            return;
+        }
+
         if (!(glowManager.hasGlowPermission(player, color) || player.hasPermission("fancyglow.all_colors"))) {
             messageHandler.sendMessage(player, Messages.NO_PERMISSION);
             return;
@@ -57,5 +69,13 @@ public class MenuClickListener implements Listener {
 
         glowManager.setGlow(player, color);
         messageHandler.sendMessage(player, Messages.ENABLE_GLOW);
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent e) {
+        // Dragging items across the menu's slots would otherwise place them into it.
+        if (e.getView().getTopInventory().getHolder() instanceof CreatingInventory) {
+            e.setCancelled(true);
+        }
     }
 }

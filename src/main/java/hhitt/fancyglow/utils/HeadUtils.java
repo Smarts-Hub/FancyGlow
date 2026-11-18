@@ -10,7 +10,10 @@ import org.bukkit.profile.PlayerTextures;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -53,9 +56,23 @@ public class HeadUtils {
      * @throws MalformedURLException
      */
     public static URL getUrlFromBase64(String base64) throws MalformedURLException {
-        String decoded = new String(Base64.getDecoder().decode(base64));
-        // We simply remove the "beginning" and "ending" part of the JSON, so we're left with only the URL. You could use a proper
-        // JSON parser for this, but that's not worth it. The String will always start exactly with this stuff anyway
-        return new URL(decoded.substring("{\"textures\":{\"SKIN\":{\"url\":\"".length(), decoded.length() - "\"}}}".length()));
+        final String decoded;
+        try {
+            decoded = new String(Base64.getDecoder().decode(base64.trim()), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            throw new MalformedURLException("Texture is not valid base64");
+        }
+
+        // Find the skin URL instead of cutting fixed offsets: the old substring() only worked for the exact
+        // {"textures":{"SKIN":{"url":"..."}}} layout and threw StringIndexOutOfBoundsException (uncaught, breaking
+        // the menu) or built a garbage URL for textures that also contain timestamp/profileId/metadata fields.
+        Matcher matcher = SKIN_URL.matcher(decoded);
+        if (!matcher.find()) {
+            throw new MalformedURLException("No skin URL found in texture");
+        }
+
+        return new URL(matcher.group(1));
     }
+
+    private static final Pattern SKIN_URL = Pattern.compile("\"SKIN\"\\s*:\\s*\\{[^}]*?\"url\"\\s*:\\s*\"([^\"]+)\"");
 }
