@@ -25,7 +25,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin; // Added standard Spigot import
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +54,7 @@ public final class FancyGlow extends JavaPlugin {
     /**
      * Provides access to Adventure for chat formatting.
      */
-    public @NonNull BukkitAudiences adventure() {
+    public BukkitAudiences adventure() {
         if (this.adventure == null) {
             throw new IllegalStateException("Tried to access Adventure when the plugin was disabled!");
         }
@@ -71,9 +70,6 @@ public final class FancyGlow extends JavaPlugin {
             
             // Check for plugin updates
             checkUpdates();
-
-            // Attempts to hook onto TAB API (Automatically updates nametags)
-            new TabImplementation(this).initialize();
         });
 
         // Initialize Adventure
@@ -119,6 +115,11 @@ public final class FancyGlow extends JavaPlugin {
 
         // Hook into PlaceholderAPI
         hookPlaceholderAPI();
+
+        // Attempts to hook onto TAB API (Automatically updates nametags).
+        // Done here, on the main thread after the managers exist: it used to run in the async task at the top of
+        // onEnable, racing with the creation of playerGlowManager (its placeholder could capture null and throw).
+        new TabImplementation(this).initialize();
         
         this.logger.info("FancyGlow has been enabled successfully!");
     }

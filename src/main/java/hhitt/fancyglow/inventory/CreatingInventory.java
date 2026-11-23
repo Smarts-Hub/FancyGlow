@@ -9,6 +9,7 @@ import hhitt.fancyglow.utils.HeadUtils;
 import hhitt.fancyglow.utils.MessageHandler;
 import hhitt.fancyglow.utils.MessageUtils;
 import hhitt.fancyglow.utils.Messages;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -74,14 +75,19 @@ public class CreatingInventory implements InventoryHolder {
         setRainbowItem();
     }
 
-    private void prepareForPlayer(final Player player) {
-        setFlashingItem(player);
-        setPlayerStatusItem(player);
-    }
-
+    /*
+     * Each player gets their own copy of the menu. It used to be one shared Inventory: the per-player status head and
+     * flashing item were overwritten for everyone viewing it, and items shift-clicked into it were visible to (and
+     * takeable by) every other viewer.
+     */
     public void openInventory(Player player) {
-        prepareForPlayer(player);
-        player.openInventory(inventory);
+        Inventory personal = Bukkit.createInventory(this, inventory.getSize(), messageHandler.getMessage(Messages.INVENTORY_TITLE));
+        personal.setContents(inventory.getContents());
+
+        setFlashingItem(personal, player);
+        setPlayerStatusItem(personal, player);
+
+        player.openInventory(personal);
     }
 
     private void setFiller() {
@@ -102,14 +108,14 @@ public class CreatingInventory implements InventoryHolder {
         }
     }
 
-    private void setFlashingItem(final Player player) {
+    private void setFlashingItem(final Inventory target, final Player player) {
         // Clear flashing item since plugin no longer
         int slot = config.getInt("Inventory.Flashing.Slot", 40);
         if (slot == -1) {
             return;
         }
 
-        inventory.setItem(slot, null);
+        target.setItem(slot, null);
 
         // Returns if player doesn't have any team or isn't glowing.
         if (playerGlowManager.findPlayerTeam(player) == null && !player.isGlowing()) return;
@@ -123,7 +129,7 @@ public class CreatingInventory implements InventoryHolder {
         flashingHeadMeta.setLore(messageHandler.getMessages(Messages.FLASHING_HEAD_LORE));
         flashingHead.setItemMeta(flashingHeadMeta);
 
-        inventory.setItem(slot, flashingHead);
+        target.setItem(slot, flashingHead);
     }
 
     private void setRainbowItem() {
@@ -144,7 +150,7 @@ public class CreatingInventory implements InventoryHolder {
         inventory.setItem(slot, rainbowHead);
     }
 
-    private void setPlayerStatusItem(Player player) {
+    private void setPlayerStatusItem(Inventory target, Player player) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) head.getItemMeta();
         meta.setDisplayName(messageHandler.getMessage(Messages.HEAD_NAME));
@@ -164,7 +170,7 @@ public class CreatingInventory implements InventoryHolder {
         meta.setOwningPlayer(player);
         head.setItemMeta(meta);
 
-        inventory.setItem(config.getInt("Inventory.Status.Slot", 41), head);
+        target.setItem(config.getInt("Inventory.Status.Slot", 41), head);
     }
 
     @NotNull

@@ -37,6 +37,12 @@ public class MulticolorTask extends BukkitRunnable {
                 continue;
             }
 
+            // Don't re-enable glowing in disabled worlds (it resumes when the player leaves them).
+            if (glowManager.isDeniedWorld(player.getWorld().getName())) {
+                if (player.isGlowing()) player.setGlowing(false);
+                continue;
+            }
+
             String cleanName = player.getName();
             Team lastTeam = playerGlowManager.findPlayerTeam(player);
 

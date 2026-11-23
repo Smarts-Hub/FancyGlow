@@ -3,8 +3,8 @@ import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
 plugins {
     id("java")
     id("maven-publish")
-    id("com.gradleup.shadow") version "8.3.5"
-    id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
+    id("com.gradleup.shadow") version "9.3.2"
+    id("de.eldoria.plugin-yml.bukkit") version "0.8.0"
 }
 
 repositories {
@@ -37,7 +37,7 @@ dependencies {
 
 group = "hhitt.fancyglow"
 description = "FancyGlow"
-version = "2.10.5"
+version = "2.10.6"
 
 publishing {
     publications {
@@ -54,13 +54,16 @@ tasks {
 
     java {
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
+            // JDK 25 is needed to read the Spigot 26.x API (compiled for Java 25).
+            languageVersion.set(JavaLanguageVersion.of(25))
         }
     }
 
     compileJava {
         options.encoding = "UTF-8"
         options.compilerArgs.add("-parameters")
+        // Java 21 bytecode, so the jar still loads on 1.21.x servers running Java 21 (supports 1.21 through 26.3).
+        options.release.set(21)
     }
 
     shadowJar {

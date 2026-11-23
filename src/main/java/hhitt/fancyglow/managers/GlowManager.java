@@ -162,7 +162,7 @@ public class GlowManager {
         if (multicolorTask == null || multicolorTask.isCancelled()) {
             int ticks = plugin.getConfiguration().getInt("Rainbow_Update_Interval");
             this.multicolorTask = new MulticolorTask(plugin)
-                    .runTaskTimerAsynchronously(plugin, 5L, ticks);
+                    .runTaskTimer(plugin, 5L, ticks); // main thread: glowing state and scoreboard teams are not thread-safe
         }
     }
 
@@ -176,7 +176,7 @@ public class GlowManager {
         if (flashingTask == null || flashingTask.isCancelled()) {
             int ticks = plugin.getConfiguration().getInt("Flashing_Update_Interval");
             this.flashingTask = new FlashingTask(plugin)
-                    .runTaskTimerAsynchronously(plugin, 5L, ticks);
+                    .runTaskTimer(plugin, 5L, ticks); // main thread: glowing state and scoreboard teams are not thread-safe
         }
     }
 

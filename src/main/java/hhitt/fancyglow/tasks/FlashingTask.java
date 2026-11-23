@@ -28,6 +28,12 @@ public class FlashingTask extends BukkitRunnable {
                 continue;
             }
 
+            // Keep players in disabled worlds dark instead of flashing them back on.
+            if (glowManager.isDeniedWorld(player.getWorld().getName())) {
+                if (player.isGlowing()) player.setGlowing(false);
+                continue;
+            }
+
             // Toggle glowing state
             player.setGlowing(!player.isGlowing());
         }
